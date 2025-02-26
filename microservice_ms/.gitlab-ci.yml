@@ -1,0 +1,17 @@
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  script:
+    - ./mvnw clean package
+    - docker build -t stock-ms .
+    - docker tag stock-ms:latest raky17/stock-ms:latest
+    - docker push raky17/stock-ms:latest
+
+deploy:
+  stage: deploy
+  script:
+    - kubectl apply -f deployment.yaml
+    - kubectl apply -f service.yaml

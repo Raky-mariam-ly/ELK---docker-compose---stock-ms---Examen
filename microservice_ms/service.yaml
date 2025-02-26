@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: stock-ms
+spec:
+  type: NodePort  # Type de service pour exposer l'application
+  ports:
+  - port: 8080    # Port du service
+    targetPort: 8080  # Port du conteneur
+  selector:
+    app: stock-ms  # Sélecteur pour cibler les pods de l'application

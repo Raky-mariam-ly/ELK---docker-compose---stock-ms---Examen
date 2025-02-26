@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stock-ms
+spec:
+  replicas: 2  # Nombre de réplicas (instances) de l'application
+  selector:
+    matchLabels:
+      app: stock-ms
+  template:
+    metadata:
+      labels:
+        app: stock-ms
+    spec:
+      containers:
+      - name: stock-ms
+        image: raky17/stock-ms:latest  # Image Docker de l'application
+        ports:
+        - containerPort: 8080  # Port exposé par l'application
