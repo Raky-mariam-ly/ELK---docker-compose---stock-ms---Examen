@@ -1,30 +1,34 @@
-version: '3.8'
+
+
+
+
+version: '3.7'
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+    container_name: elasticsearch
     environment:
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=changeme
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - esdata:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
-    networks:
-      - elk
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.5.1
-    volumes:
-      - ./logstash-config:/usr/share/logstash/pipeline
-    ports:
-      - "5000:5000"
-    environment:
-      - LS_JAVA_OPTS=-Xms512m -Xmx512m
-    depends_on:
-      - elasticsearch
+      - "9300:9300"
     networks:
       - elk
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.5.1
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=https://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=changeme
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
     ports:
       - "5601:5601"
     depends_on:
@@ -32,16 +36,34 @@ services:
     networks:
       - elk
 
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.5.1
+    container_name: logstash
+    volumes:
+      - ./logstash/config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5000:5000"
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
   stock-ms:
     image: raky17/stock-ms:latest
+    container_name: stock-ms
     ports:
       - "8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_ELASTICSEARCH_URIS=https://elasticsearch:9200
+      - SPRING_ELASTICSEARCH_USERNAME=elastic
+      - SPRING_ELASTICSEARCH_PASSWORD=changeme
     depends_on:
-      - logstash
+      - elasticsearch
     networks:
       - elk
+
+volumes:
+  esdata:
 
 networks:
   elk:
